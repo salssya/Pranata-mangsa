@@ -1,0 +1,44 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="16" fill="#2E7D32"/>
+  
+  <!-- Sun rays -->
+  <g stroke="#FFF" stroke-width="1.5" stroke-linecap="round">
+    <line x1="16" y1="4" x2="16" y2="6"/>
+    <line x1="16" y1="26" x2="16" y2="28"/>
+    <line x1="4" y1="16" x2="6" y2="16"/>
+    <line x1="26" y1="16" x2="28" y2="16"/>
+    <line x1="7.05" y1="7.05" x2="8.46" y2="8.46"/>
+    <line x1="23.54" y1="23.54" x2="24.95" y2="24.95"/>
+    <line x1="7.05" y1="24.95" x2="8.46" y2="23.54"/>
+    <line x1="23.54" y1="8.46" x2="24.95" y2="7.05"/>
+  </g>
+  
+  <!-- Central sun -->
+  <circle cx="16" cy="16" r="4" fill="#FFF"/>
+  
+  <!-- Rice plant -->
+  <g fill="#FFF">
+    <!-- Stem -->
+    <rect x="15.5" y="12" width="1" height="8" rx="0.5"/>
+    
+    <!-- Rice grains -->
+    <ellipse cx="13" cy="14" rx="1.5" ry="0.8" transform="rotate(-20 13 14)"/>
+    <ellipse cx="19" cy="14" rx="1.5" ry="0.8" transform="rotate(20 19 14)"/>
+    <ellipse cx="12" cy="16" rx="1.5" ry="0.8" transform="rotate(-30 12 16)"/>
+    <ellipse cx="20" cy="16" rx="1.5" ry="0.8" transform="rotate(30 20 16)"/>
+    <ellipse cx="13" cy="18" rx="1.5" ry="0.8" transform="rotate(-15 13 18)"/>
+    <ellipse cx="19" cy="18" rx="1.5" ry="0.8" transform="rotate(15 19 18)"/>
+  </g>
+  
+  <!-- Calendar element -->
+  <g fill="#FFF" opacity="0.8">
+    <rect x="10" y="22" width="12" height="8" rx="1" fill="none" stroke="#FFF" stroke-width="0.8"/>
+    <line x1="12" y1="24" x2="20" y2="24" stroke="#FFF" stroke-width="0.5"/>
+    <circle cx="13" cy="26" r="0.5"/>
+    <circle cx="16" cy="26" r="0.5"/>
+    <circle cx="19" cy="26" r="0.5"/>
+    <circle cx="13" cy="28" r="0.5"/>
+    <circle cx="16" cy="28" r="0.5"/>
+  </g>
+</svg>
