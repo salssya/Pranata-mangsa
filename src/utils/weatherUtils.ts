@@ -1,5 +1,8 @@
 import { WeatherData, Location } from '../types';
 
+// GANTI URL INI SESUAI NGROK KAMU
+const API_BASE_URL = 'https://0663-114-10-47-84.ngrok-free.app';
+
 // Get coordinates for Indonesian cities
 const getCoordinates = (location: Location): { lat: number; lon: number } => {
   const coordinates: Record<string, { lat: number; lon: number }> = {
@@ -91,26 +94,26 @@ export const getCurrentWeather = async (lat: number, lon: number) => {
   }
 };
 
-// Function for ML prediction integration - FIXED to accept features parameter
+// FIXED: Function for ML prediction integration
 export async function getPredictionLiveFromBackend(
-  features: number[],
   lat?: number,
   lon?: number
 ) {
   try {
-    const requestBody = {
-      features,
-      ...(lat && lon && { lat, lon })
-    };
+    // Build URL dengan query parameters jika ada koordinat
+    let url = `${API_BASE_URL}/predict-live`;
+    
+    if (lat && lon) {
+      url += `?lat=${lat}&lon=${lon}`;
+    }
 
-    console.log('Sending prediction request:', requestBody);
+    console.log('Calling prediction API:', url);
 
-    const response = await fetch("http://127.0.0.1:5000/predict-live", {
-      method: "POST",
+    const response = await fetch(url, {
+      method: "GET", // UBAH DARI POST KE GET
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -119,9 +122,61 @@ export async function getPredictionLiveFromBackend(
 
     const data = await response.json();
     console.log("Prediction API response:", data);
-    return data.prediction || data.used_by_frontend || data.prediction_ai;
+    return {
+      prediction: data.prediction_ai || data.used_by_frontend || data.prediction_by_date,
+      features: data.features,
+      prediction_ai: data.prediction_ai,
+      prediction_by_date: data.prediction_by_date
+    };
   } catch (error) {
     console.error('Error getting prediction from backend:', error);
+    throw error;
+  }
+}
+
+// TAMBAHAN: Function untuk prediksi manual
+export async function getPredictionManualFromBackend(features: number[]) {
+  try {
+    console.log('Sending manual prediction request:', features);
+
+    const response = await fetch(`${API_BASE_URL}/predict`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ features }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Manual prediction API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("Manual prediction API response:", data);
+    return data.prediction;
+  } catch (error) {
+    console.error('Error getting manual prediction from backend:', error);
+    throw error;
+  }
+}
+
+// TAMBAHAN: Function untuk ambil data cuaca detail dari backend
+export async function getWeatherDataFromBackend(lat: number, lon: number) {
+  try {
+    const url = `${API_BASE_URL}/weather-data?lat=${lat}&lon=${lon}`;
+    console.log('Fetching weather data from backend:', url);
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Weather data API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("Weather data API response:", data);
+    return data;
+  } catch (error) {
+    console.error('Error getting weather data from backend:', error);
     throw error;
   }
 }

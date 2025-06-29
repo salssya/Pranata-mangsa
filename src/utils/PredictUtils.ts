@@ -1,8 +1,10 @@
 import { Location } from '../types';
 
+const API_BASE_URL = 'https://0663-114-10-47-84.ngrok-free.app';
+
 export async function getPredictionLiveFromBackend(location: Location) {
   const response = await fetch(
-    `http://127.0.0.1:5000/predict-live?lat=${location.lat}&lon=${location.lon}`
+    `${API_BASE_URL}/predict-live?lat=${location.lat}&lon=${location.lon}`
   );
 
   if (!response.ok) {
@@ -23,7 +25,7 @@ export async function getPredictionLiveFromBackend(location: Location) {
 
 export async function getWeatherDataFromBackend(location: Location) {
   const response = await fetch(
-    `http://127.0.0.1:5000/weather-data?lat=${location.lat}&lon=${location.lon}`
+    `${API_BASE_URL}/weather-data?lat=${location.lat}&lon=${location.lon}`
   );
 
   if (!response.ok) {
