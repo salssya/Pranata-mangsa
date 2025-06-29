@@ -1,6 +1,8 @@
 export interface Location {
   province: string;
   city: string;
+  lat: number;
+  lon: number;
 }
 
 export interface MangsaIndicator {
@@ -30,6 +32,7 @@ export interface WeatherData {
   feelsLike: number;
   humidity: number;
   windSpeed: number;
+  precipitation: number;
   condition: 'sunny' | 'cloudy' | 'rainy' | 'stormy';
   description: string;
   rainfall: {

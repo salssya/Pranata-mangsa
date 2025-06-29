@@ -7,7 +7,8 @@ const getCoordinates = (location: Location): { lat: number; lon: number } => {
     'Yogyakarta': { lat: -7.7956, lon: 110.3695 },
   };
   
-  return coordinates[location.city] || coordinates['Gresik'];
+  // First try to use city name, then fallback to provided coordinates
+  return coordinates[location.city] || { lat: location.lat, lon: location.lon };
 };
 
 // Map OpenWeatherMap condition to our condition types
@@ -20,8 +21,8 @@ const mapWeatherCondition = (main: string): 'sunny' | 'cloudy' | 'rainy' | 'stor
   return 'sunny';
 };
 
-// Get weather features from OpenWeatherMap API
-export const getWeatherFeatures = async (lat: number, lon: number) => {
+// Get current weather from OpenWeatherMap API
+export const getCurrentWeather = async (lat: number, lon: number) => {
   const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
   
   if (!apiKey) {
@@ -29,6 +30,7 @@ export const getWeatherFeatures = async (lat: number, lon: number) => {
   }
 
   const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=id`;
+  console.log(`Fetching weather for coordinates: ${lat}, ${lon}`);
 
   try {
     const response = await fetch(url);
@@ -38,6 +40,7 @@ export const getWeatherFeatures = async (lat: number, lon: number) => {
     }
     
     const data = await response.json();
+    console.log('Weather API response:', data);
 
     const temperature = Math.round(data.main.temp);
     const feelsLike = Math.round(data.main.feels_like);
@@ -80,6 +83,7 @@ export const getWeatherFeatures = async (lat: number, lon: number) => {
       description,
       rainfall,
       alerts,
+      precipitation: rainVolume, // Add precipitation for compatibility
     };
   } catch (error) {
     console.error('Error fetching weather data:', error);
@@ -87,15 +91,26 @@ export const getWeatherFeatures = async (lat: number, lon: number) => {
   }
 };
 
-// Function for ML prediction integration
-export async function getPredictionFromBackend(features: number[]) {
+// Function for ML prediction integration - FIXED to accept features parameter
+export async function getPredictionLiveFromBackend(
+  features: number[],
+  lat?: number,
+  lon?: number
+) {
   try {
-    const response = await fetch("http://127.0.0.1:5000/predict", {
+    const requestBody = {
+      features,
+      ...(lat && lon && { lat, lon })
+    };
+
+    console.log('Sending prediction request:', requestBody);
+
+    const response = await fetch("http://127.0.0.1:5000/predict-live", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ features }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -103,8 +118,8 @@ export async function getPredictionFromBackend(features: number[]) {
     }
 
     const data = await response.json();
-    console.log("hasil dari get data ", data);
-    return data.prediction;
+    console.log("Prediction API response:", data);
+    return data.prediction || data.used_by_frontend || data.prediction_ai;
   } catch (error) {
     console.error('Error getting prediction from backend:', error);
     throw error;
@@ -115,18 +130,23 @@ export async function getPredictionFromBackend(features: number[]) {
 export const getWeatherFeaturesForPrediction = async (location: Location): Promise<number[]> => {
   try {
     const coordinates = getCoordinates(location);
-    const weatherFeatures = await getWeatherFeatures(coordinates.lat, coordinates.lon);
+    console.log(`Getting weather features for ${location.city} at coordinates:`, coordinates);
+    
+    const weatherFeatures = await getCurrentWeather(coordinates.lat, coordinates.lon);
     
     // Return 5 features as per your LVQ model: [temperature, rainfall, humidity, windSpeed, windDirection]
     const avgRainfall = (weatherFeatures.rainfall.morning + weatherFeatures.rainfall.afternoon + weatherFeatures.rainfall.night) / 3;
     
-    return [
+    const features = [
       weatherFeatures.temperature,      
       avgRainfall,                     
       weatherFeatures.humidity,        
       weatherFeatures.windSpeed,       
       weatherFeatures.windDirection    
     ];
+
+    console.log(`Weather features for ${location.city}:`, features);
+    return features;
   } catch (error) {
     console.error('Error getting weather features for prediction:', error);
     // Return default features if API fails
@@ -143,7 +163,7 @@ export const getWeatherForecast = async (lat: number, lon: number) => {
   }
 
   const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=id`;
-  console.log("hasil dari url ", + url);
+  console.log("Forecast URL:", url);
 
   try {
     const response = await fetch(url);
@@ -169,12 +189,32 @@ export const getWeatherForecast = async (lat: number, lon: number) => {
   }
 };
 
-// Main function to get weather data for a location
-export async function getWeatherData(location: Location): Promise<WeatherData> {
+// Main function to get weather data for a location - FIXED
+export async function getWeatherData(location: Location): Promise<WeatherData>;
+export async function getWeatherData(lat: number, lon: number): Promise<WeatherData>;
+export async function getWeatherData(locationOrLat: Location | number, lon?: number): Promise<WeatherData> {
   try {
-    const coordinates = getCoordinates(location);
-    const weatherFeatures = await getWeatherFeatures(coordinates.lat, coordinates.lon);
+    let coordinates: { lat: number; lon: number };
     
+    if (typeof locationOrLat === 'number' && typeof lon === 'number') {
+      // Called with lat, lon parameters
+      coordinates = { lat: locationOrLat, lon };
+    } else if (typeof locationOrLat === 'object') {
+      // Called with Location object
+      coordinates = getCoordinates(locationOrLat as Location);
+      console.log(`Getting weather data for ${(locationOrLat as Location).city} at:`, coordinates);
+    } else {
+      throw new Error('Invalid parameters for getWeatherData');
+    }
+    
+    const weatherFeatures = await getCurrentWeather(coordinates.lat, coordinates.lon);
+
+    const avgPrecipitation = (
+      weatherFeatures.rainfall.morning +
+      weatherFeatures.rainfall.afternoon +
+      weatherFeatures.rainfall.night
+    ) / 3;
+
     return {
       temperature: weatherFeatures.temperature,
       feelsLike: weatherFeatures.feelsLike,
@@ -182,67 +222,12 @@ export async function getWeatherData(location: Location): Promise<WeatherData> {
       windSpeed: weatherFeatures.windSpeed,
       condition: weatherFeatures.condition,
       description: weatherFeatures.description,
+      precipitation: avgPrecipitation,
       rainfall: weatherFeatures.rainfall,
       alerts: weatherFeatures.alerts
     };
   } catch (error) {
     console.error('Error getting weather data:', error);
-    
-    // Fallback to mock data if API fails
-    console.warn('Falling back to mock weather data');
-    return getMockWeatherData(location);
+    throw error;
   }
-}
-
-// Fallback mock data function
-function getMockWeatherData(location: Location): WeatherData {
-  const mockWeatherData: Record<string, WeatherData> = {
-    'Gresik': {
-      temperature: 32,
-      feelsLike: 34,
-      humidity: 75,
-      windSpeed: 12,
-      condition: 'sunny',
-      description: 'Cerah berawan',
-      rainfall: {
-        morning: 10,
-        afternoon: 20,
-        night: 5
-      },
-      alerts: []
-    },
-    'Yogyakarta': {
-      temperature: 29,
-      feelsLike: 31,
-      humidity: 80,
-      windSpeed: 8,
-      condition: 'rainy',
-      description: 'Hujan ringan',
-      rainfall: {
-        morning: 60,
-        afternoon: 80,
-        night: 70
-      },
-      alerts: [
-        'Potensi hujan lebat di sore hari',
-        'Waspada banjir di beberapa area rendah'
-      ]
-    },
-    'default': {
-      temperature: 30,
-      feelsLike: 32,
-      humidity: 75,
-      windSpeed: 10,
-      condition: 'sunny',
-      description: 'Cerah',
-      rainfall: {
-        morning: 20,
-        afternoon: 30,
-        night: 15
-      },
-      alerts: []
-    }
-  };
-  
-  return mockWeatherData[location.city] || mockWeatherData.default;
 }

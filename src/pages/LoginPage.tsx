@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Sprout, User, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
+
 function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ function LoginPage() {
     try {
       const success = await login(username, password);
       if (success) {
-        navigate('/dashboard');
+        navigate('/welcome');
       } else {
         setError('Username atau password salah');
       }

@@ -1,6 +1,6 @@
 import { MangsaInfo, Location } from '../types';
-import { getPredictionFromBackend } from './PredictUtils';
-import { getWeatherFeatures } from './weatherUtils';
+import { getPredictionLiveFromBackend } from './PredictUtils';
+import { getWeatherData } from './weatherUtils';
 
 const mangsaData: MangsaInfo[] = [
   {
@@ -305,7 +305,7 @@ export async function getMangsaInfoWithML(location: Location): Promise<MangsaInf
     const coords = coordinateMap[location.city] || { lat: location.lat, lon: location.lon };
     
     // Ambil data cuaca
-    const weatherData = await getWeatherFeatures(coords.lat, coords.lon);
+    const weatherData = await getWeatherData(coords.lat, coords.lon);
     
     // Siapkan features untuk ML
     const features = [
@@ -316,28 +316,32 @@ export async function getMangsaInfoWithML(location: Location): Promise<MangsaInf
       weatherData.rainfall.morning || 0, // atau total rainfall jika perlu
     ];
 
-    // Dapatkan prediksi dari ML
-    const mlPrediction = await getPredictionFromBackend(features);
-    
-    // Mapping dari hasil ML ke data mangsa
-    const mangsaIndex = mlToMangsaMapping[mlPrediction];
-    
-    if (mangsaIndex !== undefined && mangsaData[mangsaIndex]) {
-      return {
-        ...mangsaData[mangsaIndex],
-        // Tambahkan data cuaca untuk referensi
-        weatherContext: {
-          temperature: weatherData.temperature,
-          humidity: weatherData.humidity,
-          condition: weatherData.condition,
-          predictedBy: 'ML Model'
-        }
-      };
-    } else {
-      // Fallback jika prediksi ML tidak valid
-      console.warn(`Invalid ML prediction: ${mlPrediction}, using calendar-based mangsa`);
-      return getCurrentMangsa(new Date());
+// Dapatkan prediksi dari ML
+const mlPrediction = await getPredictionLiveFromBackend(features);
+
+// Log the prediction for debugging
+console.log('ML Prediction:', mlPrediction);
+
+// Mapping dari hasil ML ke data mangsa
+const mangsaIndex = mlToMangsaMapping[mlPrediction];
+
+if (mangsaIndex !== undefined && mangsaData[mangsaIndex]) {
+  return {
+    ...mangsaData[mangsaIndex],
+    // Tambahkan data cuaca untuk referensi
+    weatherContext: {
+      temperature: weatherData.temperature,
+      humidity: weatherData.humidity,
+      condition: weatherData.condition,
+      predictedBy: 'ML Model'
     }
+  };
+} else {
+  // Fallback jika prediksi ML tidak valid
+  console.warn(`Invalid ML prediction: ${mlPrediction}, using calendar-based mangsa`);
+  return getCurrentMangsa(new Date());
+}
+
     
   } catch (error) {
     console.error('Error getting ML-based mangsa prediction:', error);

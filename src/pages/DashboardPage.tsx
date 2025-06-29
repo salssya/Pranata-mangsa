@@ -1,5 +1,5 @@
-import { Route, Routes } from 'react-router-dom';
-import { useState } from 'react';
+import { Route, Routes, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
@@ -12,15 +12,24 @@ import { Location } from '../types';
 
 function DashboardPage() {
   const { user } = useAuth();
+  const routerLocation = useLocation(); // Ambil state dari LocationSelectionPage
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const [selectedLocation, setSelectedLocation] = useState<Location>({
     province: 'Jawa Timur',
-    city: 'Gresik'
+    city: 'Gresik',
+    lat: -7.1621,
+    lon: 112.6526
   });
+
+  useEffect(() => {
+    if (routerLocation.state?.location) {
+      setSelectedLocation(routerLocation.state.location);
+    }
+  }, [routerLocation]);
 
   const handleLocationChange = (location: Location) => {
     setSelectedLocation(location);
-    // Close sidebar on mobile after location change
     if (window.innerWidth < 768) {
       setSidebarOpen(false);
     }
@@ -44,11 +53,10 @@ function DashboardPage() {
         <main className="flex-1 overflow-y-auto">
           <div className="min-h-full">
             <Routes>
-              {/* Default route now goes to calendar */}
               <Route index element={<MangsaCalendarPage location={selectedLocation} />} />
               <Route path="prediction" element={<MangsaPage location={selectedLocation} />} />
               <Route path="about" element={<AboutPage location={selectedLocation} />} />
-              <Route path="weather" element={<WeatherPage location={selectedLocation} />} />
+              <Route path="weather" element={<WeatherPage location={selectedLocation} />} /> {/* ✅ Sudah benar */}
               <Route path="recommendations" element={<RecommendationsPage location={selectedLocation} />} />
             </Routes>
           </div>

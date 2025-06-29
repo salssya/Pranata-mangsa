@@ -53,7 +53,7 @@ function RecommendationsPage({ location }: RecommendationsPageProps) {
         <div className="bg-earth-500 px-6 py-4">
           <h1 className="text-2xl font-display text-white flex items-center">
             <Sprout className="h-6 w-6 mr-2" />
-            Rekomendasi Pertanian
+            Rekomendasi Tanam
           </h1>
           <p className="text-earth-100">
             {location.city}, {location.province}

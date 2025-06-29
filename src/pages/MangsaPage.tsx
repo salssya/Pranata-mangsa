@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { MangsaInfo, Location, WeatherData } from '../types';
 import { getMangsaInfo, getMangsaInfoWithML } from '../utils/mangsaUtils';
 import { getWeatherData } from '../utils/weatherUtils';
+
 import { Calendar, CloudRain, Sprout, Bell, BookOpen, TrendingUp, MapPin, Clock, RefreshCw, Brain, ToggleLeft, ToggleRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -15,6 +16,7 @@ function MangsaPage({ location }: MangsaPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [usePrediction, setUsePrediction] = useState(true);
+  const savedLocation = JSON.parse(localStorage.getItem('userLocation') || '{}');
   const [predictionStatus, setPredictionStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
   const fetchData = async () => {
@@ -242,111 +244,6 @@ function MangsaPage({ location }: MangsaPageProps) {
         </div>
       </div>
 
-      {/* What is Pranata Mangsa */}
-      <div className="bg-white rounded-xl shadow-card p-6 sm:p-8">
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <BookOpen className="h-8 w-8 text-primary-600" />
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-3">
-            Apa itu Pranata Mangsa?
-          </h2>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-          <div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3">📚 Pengertian</h3>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              Pranata Mangsa adalah sistem kalender tradisional Jawa yang membagi satu tahun menjadi 12 periode (mangsa). 
-              Setiap mangsa memiliki karakteristik cuaca dan petunjuk alam yang membantu petani menentukan waktu yang tepat 
-              untuk bercocok tanam.
-            </p>
-            <p className="text-gray-600 leading-relaxed">
-              Sistem ini telah digunakan selama berabad-abad oleh petani Jawa dan terbukti akurat dalam memprediksi 
-              pola cuaca dan musim tanam yang optimal.
-            </p>
-          </div>
-          
-          <div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3">🤖 Inovasi AI</h3>
-            <div className="space-y-3">
-              <div className="flex items-start">
-                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                  <Brain className="h-3 w-3 text-blue-600" />
-                </div>
-                <span className="text-gray-600 text-sm sm:text-base">Prediksi mangsa menggunakan AI dengan model LVQ</span>
-              </div>
-              <div className="flex items-start">
-                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                  <CloudRain className="h-3 w-3 text-blue-600" />
-                </div>
-                <span className="text-gray-600 text-sm sm:text-base">Data cuaca real-time dari OpenWeatherMap</span>
-              </div>
-              <div className="flex items-start">
-                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                  <TrendingUp className="h-3 w-3 text-blue-600" />
-                </div>
-                <span className="text-gray-600 text-sm sm:text-base">Akurasi tinggi berdasarkan 5 parameter cuaca</span>
-              </div>
-              <div className="flex items-start">
-                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                  <MapPin className="h-3 w-3 text-blue-600" />
-                </div>
-                <span className="text-gray-600 text-sm sm:text-base">Prediksi spesifik untuk lokasi Gresik dan Yogyakarta</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Dashboard Navigation Cards */}
-      <div className="bg-white rounded-xl shadow-card p-6 sm:p-8">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-3">
-            Fitur Dashboard
-          </h2>
-          <p className="text-gray-600 text-base sm:text-lg">
-            Pilih fitur yang ingin Anda gunakan untuk mendapatkan informasi pertanian
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {dashboardCards.map((card, index) => (
-            <Link
-              key={index}
-              to={card.link}
-              className={`group relative ${card.bgColor} ${card.borderColor} border-2 rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:border-opacity-60`}
-            >
-              <div className="text-center">
-                <div className={`w-16 h-16 bg-gradient-to-br ${card.color} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                  <card.icon className="h-8 w-8 text-white" />
-                </div>
-                
-                <div className="text-3xl mb-3">{card.emoji}</div>
-                
-                <h3 className={`font-semibold text-lg mb-2 ${card.textColor} group-hover:text-opacity-80 transition-colors`}>
-                  {card.title}
-                </h3>
-                
-                <p className="text-gray-600 text-sm leading-relaxed mb-4">
-                  {card.description}
-                </p>
-                
-                <div className={`inline-flex items-center text-sm font-medium ${card.textColor} group-hover:text-opacity-80 transition-colors`}>
-                  Lihat Detail
-                  <svg className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </div>
-              
-              {/* Hover Effect Background */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${card.color} opacity-0 group-hover:opacity-5 rounded-xl transition-opacity duration-300`}></div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
       {/* Quick Stats */}
       {mangsaInfo && weatherData && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -405,7 +302,7 @@ function MangsaPage({ location }: MangsaPageProps) {
         </p>
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
           <Link
-            to="/dashboard/calendar"
+            to="/dashboard"
             className="inline-flex items-center justify-center px-6 py-3 bg-white text-earth-600 font-semibold rounded-lg hover:bg-gray-50 transition-colors duration-200"
           >
             <Calendar className="h-5 w-5 mr-2" />

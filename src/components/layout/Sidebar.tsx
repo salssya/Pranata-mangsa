@@ -1,4 +1,7 @@
-import { XCircle, Home, Info, Calendar, CloudRain, Sprout, MapPin, ChevronDown, Brain } from 'lucide-react';
+import {
+  XCircle, Home, Info, Calendar, CloudRain, Sprout,
+  MapPin, ChevronDown, Brain
+} from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Location } from '../../types';
 import { useState } from 'react';
@@ -13,47 +16,58 @@ interface SidebarProps {
 function Sidebar({ isOpen, onClose, selectedLocation, onLocationChange }: SidebarProps) {
   const location = useLocation();
   const [isLocationExpanded, setIsLocationExpanded] = useState(false);
-  
+
   const provinces = ['Jawa Timur', 'Jawa Tengah'];
   const cities = {
     'Jawa Timur': ['Gresik'],
     'Jawa Tengah': ['Yogyakarta']
   };
 
+  // ✅ Daftar lokasi lengkap dengan lat dan lon
+  const locationOptions: Location[] = [
+    { province: 'Jawa Timur', city: 'Gresik', lat: -7.1621, lon: 112.6526 },
+    { province: 'Jawa Tengah', city: 'Yogyakarta', lat: -7.801194, lon: 110.364917 },
+  ];
+
   const navigationItems = [
+    { name: 'Prediksi Mangsa', icon: Brain, path: '/dashboard/prediction', color: 'text-purple-600' },
     { name: 'Tentang Pranata Mangsa', icon: Info, path: '/dashboard/about', color: 'text-blue-600' },
     { name: 'Kalender Pranata Mangsa', icon: Calendar, path: '/dashboard', color: 'text-primary-600' },
-    { name: 'Prediksi Mangsa AI', icon: Brain, path: '/dashboard/prediction', color: 'text-purple-600' },
     { name: 'Informasi Cuaca', icon: CloudRain, path: '/dashboard/weather', color: 'text-blue-600' },
     { name: 'Rekomendasi Tanam', icon: Sprout, path: '/dashboard/recommendations', color: 'text-green-600' }
   ];
 
+  // ✅ Ganti provinsi = pilih kota pertama dari provinsi itu
   const handleProvinceChange = (province: string) => {
     const firstCity = cities[province as keyof typeof cities][0];
-    onLocationChange({ province, city: firstCity });
+    const found = locationOptions.find(loc => loc.province === province && loc.city === firstCity);
+    if (found) onLocationChange(found);
   };
 
+  // ✅ Ganti kota = cari lokasi lengkap berdasarkan kota dan provinsi
   const handleCityChange = (city: string) => {
-    onLocationChange({ ...selectedLocation, city });
+    const found = locationOptions.find(loc => loc.province === selectedLocation.province && loc.city === city);
+    if (found) onLocationChange(found);
   };
 
   return (
     <>
       {isOpen && (
-        <div 
-          className="fixed inset-0 z-20 bg-gray-600 bg-opacity-75 transition-opacity md:hidden" 
-          onClick={onClose} 
+        <div
+          className="fixed inset-0 z-20 bg-gray-600 bg-opacity-75 transition-opacity md:hidden"
+          onClick={onClose}
         />
       )}
-      
+
       <aside className={`fixed md:sticky top-0 z-30 md:z-0 h-full w-64 sm:w-72 transition-transform transform ${
         isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       } bg-white border-r border-gray-200 md:block flex-shrink-0 shadow-lg md:shadow-none`}>
         <div className="h-full flex flex-col">
+          {/* Mobile header */}
           <div className="pt-4 pb-3 flex justify-between items-center px-4 md:hidden border-b border-gray-100">
             <h2 className="text-lg font-semibold text-gray-900">Menu Navigasi</h2>
-            <button 
-              onClick={onClose} 
+            <button
+              onClick={onClose}
               className="text-gray-500 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100 transition-colors"
             >
               <XCircle className="h-6 w-6" />
@@ -72,11 +86,11 @@ function Sidebar({ isOpen, onClose, selectedLocation, onLocationChange }: Sideba
               </div>
               <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${isLocationExpanded ? 'rotate-180' : ''}`} />
             </button>
-            
+
             <div className="mt-2 text-xs text-gray-600">
               📍 {selectedLocation.city}, {selectedLocation.province}
             </div>
-            
+
             {isLocationExpanded && (
               <div className="mt-3 space-y-3 animate-fade-in">
                 <div>
@@ -94,7 +108,7 @@ function Sidebar({ isOpen, onClose, selectedLocation, onLocationChange }: Sideba
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <label htmlFor="city" className="block text-xs font-medium text-gray-700 mb-1">
                     Kota/Kabupaten
@@ -114,7 +128,7 @@ function Sidebar({ isOpen, onClose, selectedLocation, onLocationChange }: Sideba
             )}
           </div>
 
-          {/* Navigation Menu */}
+          {/* Navigation */}
           <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
             <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
               Menu Utama
