@@ -1,6 +1,6 @@
 import { Location } from '../types';
 
-const API_BASE_URL = 'https://0663-114-10-47-84.ngrok-free.app';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 export async function getPredictionLiveFromBackend(location: Location) {
   const response = await fetch(
@@ -8,7 +8,7 @@ export async function getPredictionLiveFromBackend(location: Location) {
   );
 
   if (!response.ok) {
-    throw new Error("Gagal memuat prediksi dari backend");
+    throw new Error("Gagal mengambil data prediksi");
   }
 
   const data = await response.json();
@@ -21,17 +21,4 @@ export async function getPredictionLiveFromBackend(location: Location) {
     location: data.location,
     dasarianFeatures: data.features // Raw features untuk ditampilkan
   };
-}
-
-export async function getWeatherDataFromBackend(location: Location) {
-  const response = await fetch(
-    `${API_BASE_URL}/weather-data?lat=${location.lat}&lon=${location.lon}`
-  );
-
-  if (!response.ok) {
-    throw new Error("Gagal memuat data cuaca dari backend");
-  }
-
-  const data = await response.json();
-  return data;
 }

@@ -372,7 +372,7 @@ export function getCurrentMangsa(date: Date): MangsaInfo {
   };
 
   if (checkInRange([4, 12], [5, 21])) return mangsaData[11]; // Sadha: 12 May - 21 June
-  if (checkInRange([5, 22], [6, 1])) return mangsaData[0];   // Kasa: 22 June - 1 Aug
+  if (checkInRange([5, 22], [7, 1])) return mangsaData[0];   // Kasa: 22 June - 1 Aug
   if (checkInRange([6, 2], [7, 24])) return mangsaData[1];   // Karo: 2 Aug - 24 Sep
   if (checkInRange([7, 25], [8, 17])) return mangsaData[2];  // Katelu: 25 Aug - 17 Oct
   if (checkInRange([8, 18], [9, 12])) return mangsaData[3];  // Kapat: 18 Sep - 12 Oct
